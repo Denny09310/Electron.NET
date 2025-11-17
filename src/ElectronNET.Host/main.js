@@ -7,7 +7,7 @@ const portscanner = require('portscanner');
 const { imageSize } = require('image-size');
 const { HookService } = require('electron-host-hook');
 let io, server, browserWindows, ipc, apiProcess, loadURL;
-let appApi, menu, dialogApi, notification, tray, webContents;
+let appApi, menu, dialogApi, notification, tray, webContents, protocolApi;
 let globalShortcut, shellApi, screen, clipboard, autoUpdater;
 let commandLine, browserView;
 let powerMonitor;
@@ -329,6 +329,7 @@ function startSocketApiBridge(port) {
         if (nativeTheme === undefined) nativeTheme = require('./api/nativeTheme')(socket);
         if (dock === undefined) dock = require('./api/dock')(socket);
         if (processInfo === undefined) processInfo = require('./api/process')(socket);
+        if (protocolApi === undefined) protocolApi = require('./api/protocol')(socket);
 
         socket.on('register-app-open-file', (id) => {
             global['electronsocket'] = socket;
@@ -373,7 +374,7 @@ function startSocketApiBridge(port) {
 function startAspCoreBackend(electronPort) {
     startBackend();
 
-    function startBackend() {           
+    function startBackend() {
         loadURL = `about:blank`;
         const envParam = getEnvironmentParameter();
         const parameters = [

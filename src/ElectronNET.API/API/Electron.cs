@@ -186,13 +186,24 @@
         }
 
         /// <summary>
-        /// Electeon extensions to the Nodejs process object.
+        /// Electron extensions to the Nodejs process object.
         /// </summary>
         public static Process Process
         {
             get
             {
                 return Process.Instance;
+            }
+        }
+
+        /// <summary>
+        /// Register a custom protocol and intercept existing protocol requests.
+        /// </summary>
+        public static Protocol Protocol
+        {
+            get
+            {
+                return Protocol.Instance;
             }
         }
     }
