@@ -61,11 +61,14 @@ module.exports = (socket) => {
     _socket = socket;
     console.log("protocol api initialized.");
     socket.on("register-schemes-as-privileged", (schemes) => {
+        console.log("register schemes as privileged called.");
         electron_1.protocol.registerSchemesAsPrivileged(schemes);
         _socket.emit("register-schemes-as-privileged-completed");
     });
     socket.on("protocol-handle-register", ({ scheme }) => {
+        console.log("protocol handle called.");
         electron_1.protocol.handle(scheme, (request) => handle(scheme, request));
+        _socket.emit("protocol-handle-register-completed");
     });
 };
 //# sourceMappingURL=protocol.js.map

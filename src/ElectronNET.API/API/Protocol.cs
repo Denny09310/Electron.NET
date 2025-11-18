@@ -45,8 +45,8 @@ namespace ElectronNET.API
         {
             var tsc = new TaskCompletionSource();
 
-            BridgeConnector.Socket.Once("registerSchemesAsPrivilegedComplete", tsc.SetResult);
-            BridgeConnector.Socket.Emit("registerSchemesAsPrivileged", customSchemes);
+            BridgeConnector.Socket.Once("register-schemes-as-privileged-completed", tsc.SetResult);
+            BridgeConnector.Socket.Emit("register-schemes-as-privileged", customSchemes);
 
             return tsc.Task;
         }
