@@ -56,18 +56,19 @@ namespace ElectronNET.API
         /// </summary>
         /// <param name="scheme">scheme to handle, for example https or my-app. This is the bit before the : in a URL.</param>
         /// <param name="handler">Either a <see cref="Response" /> or a <see cref="Task{Response}"/> can be returned.</param>
-        public void Handle(string scheme, Func<Request, Response> handler)
+        public Task HandleAsync(string scheme, Func<Request, Response> handler)
         {
             if (string.IsNullOrWhiteSpace(scheme))
                 throw new ArgumentException("Scheme must not be null or empty.", nameof(scheme));
 
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
-
-            Handle(scheme, req => Task.FromResult(handler(req)));
+            return handler switch
+            {
+                null => throw new ArgumentNullException(nameof(handler)),
+                _ => HandleAsync(scheme, req => Task.FromResult(handler(req)))
+            };
         }
 
-        public void Handle(string scheme, Func<Request, Task<Response>> handler)
+        public Task HandleAsync(string scheme, Func<Request, Task<Response>> handler)
         {
             if (string.IsNullOrWhiteSpace(scheme))
                 throw new ArgumentException("Scheme must not be null or empty.", nameof(scheme));
@@ -78,6 +79,7 @@ namespace ElectronNET.API
             var tsc = new TaskCompletionSource();
 
             // Tell TS to register protocol.handle for this scheme.
+            BridgeConnector.Socket.Once("protocol-handle-register-completed", tsc.SetResult);
             BridgeConnector.Socket.Emit("protocol-handle-register", new
             {
                 scheme
@@ -133,6 +135,8 @@ namespace ElectronNET.API
                     });
                 }
             });
+
+            return tsc.Task;
         }
     }
 

@@ -2,7 +2,7 @@ import { Socket } from "net";
 import { protocol } from "electron";
 import { randomUUID } from "crypto"; // Node 14+; or a simple counter
 
-let electronSocket: Socket;
+let _socket: Socket;
 
 type Request1 = {
     id: string;
@@ -21,17 +21,22 @@ type Response1 = {
 };
 
 export = (socket: Socket) => {
-    electronSocket = socket;
+    _socket = socket;
 
-    // Already handled earlier:
-    socket.on("registerSchemesAsPrivileged", (schemes) => {
+    console.log("protocol api initialized.");
+
+    socket.on("register-schemes-as-privileged", (schemes) => {
+        console.log("register schemes as privileged called.");
+
         protocol.registerSchemesAsPrivileged(schemes);
-        electronSocket.emit("registerSchemesAsPrivilegedCompleted");
+        _socket.emit("register-schemes-as-privileged-completed");
     });
 
-    // New: protocol.handle
     socket.on("protocol-handle-register", ({ scheme }: { scheme: string }) => {
+        console.log("protocol handle called.");
+
         protocol.handle(scheme, (request) => handle(scheme, request));
+        _socket.emit("protocol-handle-register-completed");
     });
 };
 
@@ -49,7 +54,7 @@ async function handle(scheme: string, request: Request): Promise<Response> {
         body = buffer.toString("base64");
     }
 
-    const dto: Request1 = {
+    const req: Request1 = {
         id,
         scheme,
         url: request.url,
@@ -60,12 +65,11 @@ async function handle(scheme: string, request: Request): Promise<Response> {
 
     return new Promise<Response>((resolve, reject) => {
         const handle = (res: Response1) => {
-            // Filter by correlation ID
             if (res?.id !== id) {
                 return;
             }
 
-            electronSocket.off("protocol-handle-response", handle as any);
+            _socket.off("protocol-handle-response", handle);
 
             try {
                 const status = res.status ?? 200;
@@ -95,7 +99,7 @@ async function handle(scheme: string, request: Request): Promise<Response> {
             }
         };
 
-        electronSocket.on("protocol-handle-response", handle);
-        electronSocket.emit("protocol-handle-request", dto);
+        _socket.once("protocol-handle-response", handle);
+        _socket.emit("protocol-handle-request", req);
     });
 }
