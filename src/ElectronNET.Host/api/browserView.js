@@ -16,6 +16,12 @@ const browserViewApi = (socket) => {
                 webPreferences: { nodeIntegration: true, contextIsolation: false },
             };
         }
+        if (!options.webPreferences["preload"]) {
+            // Default preload: exposes webUtils.getPathForFile (drag&drop file paths) to
+            // the page - that API is only callable from a preload context when context
+            // isolation is on. (/ separators also work on Windows)
+            options.webPreferences["preload"] = __dirname + "/../scripts/webutils-preload.js";
+        }
         browserView = new electron_1.BrowserView(options);
         browserView["id"] = browserViews.length + 1;
         if (options.proxy) {

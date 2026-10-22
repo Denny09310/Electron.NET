@@ -26,6 +26,7 @@
 - [Debugging](Using/Debugging.md)
 - [Package Building](Using/Package-Building.md)
 - [Secure Communication](Using/Secure-Communication.md)
+- [File Drop](Using/File-Drop.md)
 - [Adding a `custom_main.js`](Using/Custom_main.md)
 
 # API Reference

@@ -16,6 +16,7 @@
 - Added `WebContents.OnZoomChanged` event (#956)
 - Added `WebContents` page loading APIs `LoadFileAsync`, `IsLoadingAsync`, `IsLoadingMainFrameAsync`, `IsWaitingForResponseAsync`, `Reload`, `ReloadIgnoringCache` and `Stop` (#956)
 - Added `WebContents.InsertCSSAsync` and `WebContents.RemoveInsertedCSSAsync` for dynamic CSS (#956)
+- Added drag&drop file path support in windows and views: the framework exposes `webUtils.getPathForFile` to pages as `window.electronNET.getPathForFile(file)` (#1002)
 - Added `WebContents` editing and selection APIs (undo, redo, cut, copy, paste, insert text, select, ...) (#956)
 - Added `WebContents.FindInPageAsync`, `WebContents.StopFindInPage` and the `OnFoundInPage` event (#956)
 - Added `WebContents` audio events `OnAudioStateChanged`, `OnMediaStartedPlaying` and `OnMediaPaused` (#956)

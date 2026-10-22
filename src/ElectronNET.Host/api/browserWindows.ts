@@ -262,6 +262,16 @@ export = (socket: Socket, app: Electron.App) => {
         "scripts",
         "blazor-preload.js",
       );
+    } else if (!options.webPreferences["preload"]) {
+      // Default preload: exposes webUtils.getPathForFile (drag&drop file paths) to
+      // the page - that API is only callable from a preload context when context
+      // isolation is on.
+      options.webPreferences["preload"] = path.join(
+        __dirname,
+        "..",
+        "scripts",
+        "webutils-preload.js",
+      );
     }
 
     delete options.isRunningBlazor;
