@@ -1,0 +1,141 @@
+<template class="task-template">
+    <section id="file-drop-section" class="section js-section u-category-system">
+        <header class="section-header">
+            <div class="section-wrapper">
+                <h1>
+                    <svg class="section-icon"><use xlink:href="assets/img/icons.svg#icon-system"></use></svg>
+                    File Drop
+                </h1>
+                <h3>Drag &amp; drop files onto the window and resolve their <em>filesystem paths</em>.</h3>
+
+                <p>
+                    Electron removed the <code>File.path</code> augmentation in Electron 32; the path must be resolved
+                    with <code>webUtils.getPathForFile</code>, which is only callable from a preload context. Electron.NET
+                    ships a default preload that exposes it to your page as <code>window.electronNET.getPathForFile(file)</code> -
+                    no setup needed.
+                </p>
+
+                <p>You find the sample source code in <code>Controllers\FileDropController.cs</code>.</p>
+            </div>
+        </header>
+
+        <div class="demo">
+            <div class="demo-wrapper">
+                <button id="file-drop-demo-toggle" class="js-container-target demo-toggle-button">
+                    Drop files onto the window
+                    <div class="demo-meta u-avoid-clicks">Supports: Win, macOS, Linux <span class="demo-meta-divider">|</span> Process: Both</div>
+                </button>
+                <div class="demo-box">
+                    <div id="file-drop-zone" class="demo-controls"
+                         style="min-height:180px;display:block;padding:20px;text-align:center;border:2px dashed currentColor;">
+                        <strong style="line-height:180px;">Drop some files here</strong>
+                    </div>
+
+                    <table style="width:100%;margin-top:20px;border-collapse:collapse;">
+                        <thead>
+                            <tr style="text-align:left;">
+                                <th style="padding:8px;">Name</th>
+                                <th style="padding:8px;">Size</th>
+                                <th style="padding:8px;">Path (resolved with <code>getPathForFile</code>)</th>
+                                <th style="padding:8px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="file-drop-list"></tbody>
+                    </table>
+
+                    <p>In this example the page resolves the filesystem path of each dropped file with <code>window.electronNET.getPathForFile(file)</code> and lets you reveal it in the file manager.</p>
+
+                    <h5>Main Process (C#)</h5>
+                    <pre><code class="csharp">Electron.IpcMain.On("open-dropped-folder", (path) =>
+{
+    Electron.Shell.ShowItemInFolderAsync(path.ToString());
+});</code></pre>
+
+                    <div class="demo-protip">
+                        <h2>ProTip</h2>
+                        <strong>Renderer.js Support</strong>
+                        <p>With the default window options the page can also resolve paths directly, without any preload:</p>
+                        <pre><code class="language-js">const { webUtils } = require('electron');
+
+document.getElementById('drop-zone').addEventListener('drop', (event) =&gt; {
+  event.preventDefault();
+  const files = Array.from(event.dataTransfer.files).map((file) =&gt; ({
+    name: file.name,
+    path: webUtils.getPathForFile(file),
+  }));
+  console.log(files);
+});</code></pre>
+                        <p>
+                            In hardened windows (<code>nodeIntegration: false</code> with context isolation or sandbox),
+                            <code>require</code> is unavailable - use the <code>window.electronNET</code> bridge exposed
+                            by the framework default preload instead, or provide your own preload via
+                            <code>WebPreferences.Preload</code>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            (function () {
+                const { ipcRenderer } = require("electron");
+
+                const dropZone = document.getElementById("file-drop-zone");
+                const list = document.getElementById("file-drop-list");
+
+                dropZone.addEventListener("dragover", (event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "copy";
+                    dropZone.style.background = "rgba(128,128,128,0.15)";
+                });
+
+                dropZone.addEventListener("dragleave", () => {
+                    dropZone.style.background = null;
+                });
+
+                dropZone.addEventListener("drop", (event) => {
+                    event.preventDefault();
+                    dropZone.style.background = null;
+
+                    list.innerHTML = "";
+
+                    Array.from(event.dataTransfer.files).forEach((file) => {
+                        const path = window.electronNET?.getPathForFile(file) ?? "";
+
+                        const row = document.createElement("tr");
+
+                        const nameCell = document.createElement("td");
+                        nameCell.style.padding = "8px";
+                        nameCell.innerText = file.name;
+                        row.appendChild(nameCell);
+
+                        const sizeCell = document.createElement("td");
+                        sizeCell.style.padding = "8px";
+                        sizeCell.innerText = file.size.toLocaleString();
+                        row.appendChild(sizeCell);
+
+                        const pathCell = document.createElement("td");
+                        pathCell.style.padding = "8px";
+                        pathCell.innerText = path || "(no path)";
+                        row.appendChild(pathCell);
+
+                        const actionCell = document.createElement("td");
+                        actionCell.style.padding = "8px";
+                        if (path) {
+                            const button = document.createElement("button");
+                            button.className = "demo-button";
+                            button.innerText = "Show in folder";
+                            button.addEventListener("click", () => {
+                                ipcRenderer.send("open-dropped-folder", path);
+                            });
+                            actionCell.appendChild(button);
+                        }
+                        row.appendChild(actionCell);
+
+                        list.appendChild(row);
+                    });
+                });
+            }());
+        </script>
+    </section>
+</template>
