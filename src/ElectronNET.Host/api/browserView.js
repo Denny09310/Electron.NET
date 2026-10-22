@@ -10,7 +10,7 @@ let electronSocket;
 const browserViewApi = (socket) => {
     electronSocket = socket;
     socket.on("createBrowserView", (options) => {
-        if (!hasOwnChildreen(options, "webPreferences", "nodeIntegration")) {
+        if (!hasOwnChildren(options, "webPreferences", "nodeIntegration")) {
             options = {
                 ...options,
                 webPreferences: { nodeIntegration: true, contextIsolation: false },
@@ -46,7 +46,7 @@ const browserViewApi = (socket) => {
     socket.on("browserView-setBackgroundColor", (id, color) => {
         getBrowserViewById(id).setBackgroundColor(color);
     });
-    function hasOwnChildreen(obj, ...childNames) {
+    function hasOwnChildren(obj, ...childNames) {
         for (let i = 0; i < childNames.length; i++) {
             if (!obj || !obj.hasOwnProperty(childNames[i])) {
                 return false;
